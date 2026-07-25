@@ -1,0 +1,17 @@
+{
+  "name": "claude-plugin-cairn",
+  "owner": {
+    "name": "Joe Stump",
+    "url": "https://github.com/joestump"
+  },
+  "plugins": [
+    {
+      "name": "cairn",
+      "source": {
+        "source": "github",
+        "repo": "stump-wtf/claude-plugin-cairn"
+      },
+      "description": "Share and read artifacts on Cairn: drop receipts as short links, route between artifact/bundle/trajectory creates, annotate with typed anchors, and keep artifact bodies out of your context window."
+    }
+  ]
+}
