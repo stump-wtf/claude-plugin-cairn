@@ -1,0 +1,13 @@
+{
+  "name": "cairn",
+  "version": "0.1.0",
+  "description": "Share and read artifacts on Cairn, the AI-native pastebin/gist/requestbin: drop work-product receipts as short links, route correctly between artifact/bundle/trajectory creates, annotate with typed anchors, and keep artifact bodies out of your context window.",
+  "author": {
+    "name": "Joe Stump",
+    "url": "https://github.com/joestump"
+  },
+  "homepage": "https://github.com/joestump/cairn",
+  "repository": "https://github.com/stump-wtf/claude-plugin-cairn",
+  "license": "MIT",
+  "keywords": ["cairn", "artifacts", "sharing", "pastebin", "trajectory", "mcp"]
+}
