@@ -6,7 +6,7 @@
     "name": "Joe Stump",
     "url": "https://github.com/joestump"
   },
-  "homepage": "https://github.com/joestump/cairn",
+  "homepage": "https://cairn.stump.wtf/docs/",
   "repository": "https://github.com/stump-wtf/claude-plugin-cairn",
   "license": "MIT",
   "keywords": ["cairn", "artifacts", "sharing", "pastebin", "trajectory", "mcp"]

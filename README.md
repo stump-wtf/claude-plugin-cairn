@@ -1,12 +1,11 @@
 # claude-plugin-cairn
 
-A [Claude Code](https://claude.com/claude-code) plugin for using
-[Cairn](https://github.com/joestump/cairn) — the AI-native pastebin / gist / requestbin —
-**well**: drop work-product receipts as short links, route correctly between
-artifact / bundle / trajectory creates, annotate with typed anchors, and keep artifact
-bodies out of your context window.
+A [Claude Code](https://claude.com/claude-code) and [Crush](https://github.com/charmbracelet/crush)
+plugin for using [Cairn](https://cairn.stump.wtf/docs/) — the AI-native pastebin / gist /
+requestbin — **well**: drop work-product receipts as short links, route correctly between
+artifact / bundle / trajectory creates, annotate with typed anchors, hand work to another
+agent as a tagged handoff, and keep artifact bodies out of your context window.
 
-Home: https://gitea.stump.rocks/stump.wtf/claude-plugin-cairn ·
 Mirror: https://github.com/stump-wtf/claude-plugin-cairn
 
 ## What's in it
@@ -16,22 +15,60 @@ Mirror: https://github.com/stump-wtf/claude-plugin-cairn
   or wants an agent run captured as a trajectory. Encodes the mental model
   (*share the link, do not paste the body*), the create-tool routing
   (`artifact_create` vs `bundle_create` vs `run_create`), the typed-anchor annotation
-  layer, TTL/expiry expectations, and the context-hygiene traps (truncated reads,
-  echoing bodies you just pushed).
+  layer, tags and the handoff convention, what provenance can and cannot prove,
+  TTL/expiry expectations, and the context-hygiene traps.
 - **`commands/`** — slash commands that run in the main (tool-holding) session:
-  - `/cairn:share [files…]` — share files or session content as an artifact or bundle
-    and hand back the link.
+  - `/cairn:share [files…]` — share files or session content as an artifact or bundle.
   - `/cairn:receipt` — drop a markdown receipt of this session's work as a Cairn link.
-
-## Why a skill and commands (and no agents)
-
-Cairn is reached through its MCP tools, and — as with the sibling
-[claude-plugin-switchboard](https://gitea.stump.rocks/stump.wtf/claude-plugin-switchboard) —
-subagents do not inherit MCP tools in practice, so the share flows must run in the main
-session. This plugin ships no MCP-dependent agents for that reason.
 
 ## Install
 
-This plugin lives in a plugin marketplace / is added directly to a Claude Code project or
-your user config. See the Claude Code plugin docs for the current install flow. The plugin
-root is this repository (it contains `.claude-plugin/plugin.json`).
+The plugin is public, so it installs from the GitHub mirror on any machine.
+
+### Claude Code
+
+```bash
+claude plugin marketplace add stump-wtf/claude-plugin-cairn
+claude plugin install cairn@claude-plugin-cairn
+```
+
+Verify it loaded by asking Claude to list its skills, or by starting a request with
+"share this on cairn" and checking that it reaches for `artifact_create` rather than
+inventing a paste service.
+
+### Crush
+
+Crush discovers skills by **path**, not by plugin install. Clone the repo and point Crush
+at its `skills/` directory — link or configure the directory itself, never the individual
+skills, or reads inside it lose their prompt-free grant:
+
+```bash
+git clone https://github.com/stump-wtf/claude-plugin-cairn.git ~/src/claude-plugin-cairn
+ln -s ~/src/claude-plugin-cairn/skills ~/.config/crush/skills-ext/cairn
+```
+
+## What the skill does not do
+
+- **It grants nothing.** Scopes come from the OAuth grant or the personal access token, not
+  from the skill. Installing it does not widen what an agent can reach.
+- **It is not required to use Cairn.** The MCP tools work without it; the skill is the
+  difference between using them and using them well.
+- **It does not connect you.** Wiring the MCP server is a separate step —
+  [Connect your agent over MCP](https://cairn.stump.wtf/docs/guides/connect-your-agent).
+
+## Development
+
+```bash
+make check        # lint (manifests, frontmatter, caps, dead links)
+```
+
+The lint enforces the two budgets a harness applies silently: a description over the cap
+(900 house, 1024 hard once XML-escaped) makes the skill vanish from the prompt with no
+diagnostic, and a body over 180 lines belongs partly in `references/`. It also greps for two
+link patterns that must stay dead — the retired GitHub source URL, which 404s, and any
+private-forge URL, which no reader of this public repo can open. Both patterns are spelled
+out in the `Makefile`.
+
+## License
+
+MIT
