@@ -38,24 +38,38 @@ inventing a paste service.
 
 ### Crush
 
-Crush discovers skills through **`options.skills_paths` in `crush.json`** — an explicit list of
-directories it reads. Clone the plugin anywhere, then **append** the clone's `skills` directory
-to that list as an absolute path. The clone alone does nothing: nothing reads a directory that
-is not in the list.
+Crush reads `options.skills_paths` **plus several directories it scans with no configuration at
+all** — `~/.config/crush/skills`, `~/.config/agents/skills`, `~/.agents/skills`,
+`~/.claude/skills`, and the `.crush/skills` / `.agents/skills` equivalents inside a project. So
+there are two working routes; a clone on its own does nothing until one of them holds.
 
 ```bash
 git clone https://github.com/stump-wtf/claude-plugin-cairn.git ~/src/claude-plugin-cairn
 ```
 
-Then in `~/.config/crush/crush.json`, appending rather than replacing what is already there:
+**Register the clone.** Crush has two config formats and both set the same `skills_paths` list:
+`crushrc` (Bash with Crush builtins) and `crush.json`. Both work, and where a directory holds
+both Crush merges them with `crushrc` winning on conflict — but **`crush.json` is deprecated
+upstream**: still supported, and frozen, with new options landing only in the Bash config. So
+prefer `crushrc`. `option skill-path` adds to the list rather than replacing it, is upstream
+Crush rather than a fork-only directive, and expands `~`, so no absolute path is needed:
 
-```json
-{"options": {"skills_paths": ["/Users/you/src/claude-plugin-cairn/skills"]}}
+```
+# ~/.config/crush/crushrc
+option skill-path ~/src/claude-plugin-cairn/skills
 ```
 
-Point the entry at the clone's own `skills` directory rather than symlinking the individual
-skills into a configured path — a per-skill symlink resolves each file back outside that path,
-which costs the reads their prompt-free grant while the skill still appears to load.
+**Or copy it into a scanned directory**, for zero configuration:
+
+```bash
+cp -R ~/src/claude-plugin-cairn/skills/* ~/.config/crush/skills/
+```
+
+**Copy — do not symlink.** Crush resolves symlinks before deciding whether a file sits inside a
+skills directory, so a symlinked skill still *loads*, while the files it wants to read resolve
+back to the clone, outside that directory. Those reads then truncate and start asking for
+permission, which looks like the skill misbehaving rather than a path problem. To keep the files
+where you cloned them, register that path instead of copying.
 
 ## What the skill does not do
 
