@@ -38,14 +38,24 @@ inventing a paste service.
 
 ### Crush
 
-Crush discovers skills by **path**, not by plugin install. Clone the repo and point Crush
-at its `skills/` directory — link or configure the directory itself, never the individual
-skills, or reads inside it lose their prompt-free grant:
+Crush discovers skills through **`options.skills_paths` in `crush.json`** — an explicit list of
+directories it reads. Clone the plugin anywhere, then **append** the clone's `skills` directory
+to that list as an absolute path. The clone alone does nothing: nothing reads a directory that
+is not in the list.
 
 ```bash
 git clone https://github.com/stump-wtf/claude-plugin-cairn.git ~/src/claude-plugin-cairn
-ln -s ~/src/claude-plugin-cairn/skills ~/.config/crush/skills-ext/cairn
 ```
+
+Then in `~/.config/crush/crush.json`, appending rather than replacing what is already there:
+
+```json
+{"options": {"skills_paths": ["/Users/you/src/claude-plugin-cairn/skills"]}}
+```
+
+Point the entry at the clone's own `skills` directory rather than symlinking the individual
+skills into a configured path — a per-skill symlink resolves each file back outside that path,
+which costs the reads their prompt-free grant while the skill still appears to load.
 
 ## What the skill does not do
 
