@@ -6,7 +6,7 @@ use the `cairn` CLI for creating, reading, and managing Cairn artifacts from the
 ## Authentication
 
 ```bash
-# OAuth login (recommended)
+# Token login (OAuth 2.1 + PKCE is a follow-up, not yet implemented)
 cairn login
 
 # Or use a token
@@ -69,7 +69,7 @@ The container image ships a `cairnd` shim for backwards compatibility.
 **Share a long report:**
 ```bash
 cat audit-log.txt | cairn --title "audit 2026-09-29"
-# outputs: cairn.sh/abc123
+# outputs: cairn.stump.wtf/abc123
 ```
 
 **Bundle diagnostics:**

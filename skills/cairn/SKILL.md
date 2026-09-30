@@ -30,7 +30,7 @@ conversation defeats the point and burns context.
 ## Cairn CLI
 
 When the CLI beats the MCP tools — large payloads, scripts, subagents that don't inherit
-MCP tools — use the `cairn` single binary: `cat file | cairn` shares a body, `cairn f1 f2`
+MCP tools — use the `cairn` single binary: `cat file | cairn` shares a body, `cairn add f1 f2`
 bundles files, `cairn login` / `cairn whoami` handle auth. The full flag table, create
 patterns, recipes, and `cairn serve` deployment live in `references/cli.md`.
 
