@@ -1,6 +1,6 @@
 ---
 name: cairn
-description: Share and read artifacts on Cairn, the AI-native pastebin/gist/requestbin. Use whenever the user says "share this", "drop this in cairn", "give me a link to this", asks you to post a report/diff/log somewhere linkable, pastes a Cairn short URL or an mcp://cairn/<id> handle to read, wants a comment or reaction left on an artifact, wants an agent run captured as a shareable trajectory, or wants to hand work to another agent as a tagged handoff. Covers routing between artifact_create / bundle_create / run_create, reading artifacts and bundle members, the annotation layer (comments + reactions with typed anchors), tags and the handoff convention, what provenance can and cannot prove, TTL/expiry expectations, and the context-hygiene traps (truncated reads, echoing bodies you just created).
+description: Share and read artifacts on Cairn, the AI-native pastebin/gist/requestbin. Use whenever the user says "share this", "drop this in cairn", "give me a link to this", asks you to post a report/diff/log somewhere linkable, pastes a Cairn short URL or an mcp://cairn/<id> handle to read, wants a comment or reaction left on an artifact, wants an agent run captured as a shareable trajectory, or wants to hand work to another agent as a tagged handoff. Covers routing between artifact_create / bundle_create / run_create, reading artifacts and bundle members, the annotation layer (comments + reactions with typed anchors), tags and the handoff convention, what provenance can and cannot prove, TTL/expiry expectations, the Cairn CLI for when it beats the MCP tools, and the context-hygiene traps (truncated reads, echoing bodies you just created).
 ---
 
 # Cairn
@@ -29,88 +29,10 @@ conversation defeats the point and burns context.
 
 ## Cairn CLI
 
-When the **CLI beats the MCP** (large bodies, scripts, subagents that don't inherit MCP tools),
-use the `cairn` CLI for creating, reading, and managing Cairn artifacts from the command line.
-
-### Authentication
-
-```bash
-# OAuth login (recommended)
-cairn login
-
-# Or use a token
-cairn login --token <token>
-
-# Check authentication
-cairn whoami
-```
-
-Tokens are stored securely (OS keychain on macOS, file on Linux, Credential Manager on Windows). Never log or echo tokens.
-
-### Create artifacts
-
-```bash
-# Pipe content, get a link printed and copied to clipboard
-cat incident-report.md | cairn
-
-# Create artifact from a file
-cairn screenshots.pdf
-
-# Bundle multiple files
-cairn add bug-screenshot.png error.log database.sql
-
-# Set custom TTL, title, and tags
-cairn --ttl 24h --title "incident notes" --tag handoff --tag lane:m notes.md
-```
-
-**Common flags:**
-
-| Flag | Meaning |
-|------|---------|
-| `--json` | Machine-readable output |
-| `--no-copy` | Don't copy link to clipboard |
-| `--redact` | Store detected secrets as `[REDACTED]` |
-| `--ttl` | Set artifact TTL (e.g. `"24h"`, `"7d"`) |
-| `--title` | Display title for the artifact |
-| `--tag` | Add routing tags (repeatable) |
-
-### Server deployment
-
-`cairn` is a single monolithic binary; `cairn serve` provides the web app, API, SSE, and MCP
-server (formerly the `cairnd` binary). Configuration is environment-based:
-
-```bash
-CAIRN_DATABASE_URL="postgres://..." CAIRN_S3_ENDPOINT="..." CAIRN_S3_BUCKET="..." \
-cairn serve
-```
-
-The container image ships a `cairnd` shim for backwards compatibility.
-
-### Use CLI instead of MCP when:
-
-- **Larger payloads** — the CLI doesn't hit MCP tool limits
-- **Scripts and automation** — piped output is only the bare link on stdout
-- **Batch operations** — `cairn add` bundles multiple files efficiently
-- **Binary content** — MCP bodies must be text; images and binaries go over the CLI or REST
-
-### Quick recipes using CLI
-
-**Share a long report:**
-```bash
-cat audit-log.txt | cairn --title "audit 2026-09-29"
-# outputs: cairn.sh/abc123
-```
-
-**Bundle diagnostics:**
-```bash
-cairn --title "incident-291-diagnostics" --ttl 7d \
-  add logs/screenshot.png logs/error.log diagnostics/system.txt
-```
-
-**Machine-readable output:**
-```bash
-cat report.md | cairn --json
-```
+When the CLI beats the MCP tools — large payloads, scripts, subagents that don't inherit
+MCP tools — use the `cairn` single binary: `cat file | cairn` shares a body, `cairn f1 f2`
+bundles files, `cairn login` / `cairn whoami` handle auth. The full flag table, create
+patterns, recipes, and `cairn serve` deployment live in `references/cli.md`.
 
 ## Routing: which create tool
 
@@ -228,24 +150,9 @@ and misroutes downstream. Pass the `mcp://cairn/<id>` handle to the receiving ag
 
 ## Tool reference
 
-| Tool | Key args | Scope |
-|---|---|---|
-| `artifact_read` | `id`, `path` (bundle member) | `artifacts:read` |
-| `artifact_create` | `body`, `title`, `share_type`, `media_type`, `model`, `tags` | `artifacts:write` |
-| `bundle_create` | `title`, `members[{name, body, media_type}]`, `model`, `tags` | `artifacts:write` |
-| `run_create` | `mode`, `title`, `prompt`, `model`, `token_count`, `started_at`, `spans[]` | `artifacts:write` |
-| `run_append_spans` | `id`, `spans[]` | `artifacts:write` |
-| `artifact_comment` | `id`, `anchor_type`, `anchor_ref`, `body`, `parent_id` | `annotations:write` |
-| `artifact_react` | `id`, `anchor_type`, `anchor_ref`, `emoji` | `annotations:write` |
-| `a2ui_action` | `name` (`open_member`), `context` | `artifacts:read` |
-| `a2ui_error` | `code`, `message`, `surfaceId` | none |
-
-Resources: `mcp://cairn/run/{id}` and `mcp://cairn/hook/{id}` (subscribable). Rendered views
-for A2UI-capable hosts — `cairn://artifact/{id}/a2ui`, `cairn://bundle/{id}/a2ui`,
-`cairn://bundle/{id}/{name}/a2ui`, `cairn://run/{id}/a2ui` (add `?w=N`), each also under
-`mcp://cairn/…`. **When a human asks to *see* an artifact, read the matching A2UI view**;
-`artifact_read` is for your own use. Subscribing to an `/a2ui` URI is an error — subscribe to
-the JSON resource instead.
+The per-tool argument and scope table, the resource URIs, and the A2UI views are in
+`references/tools.md`. **When a human asks to *see* an artifact, read the matching A2UI view**
+— `artifact_read` is for your own use.
 
 ## Quick recipes
 
