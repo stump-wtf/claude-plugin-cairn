@@ -16,7 +16,7 @@ cairn login --token <token>
 cairn whoami
 ```
 
-Tokens are stored securely (OS keychain on macOS, file on Linux, Credential Manager on Windows). Never log or echo tokens.
+Tokens are stored in the OS keyring (macOS Keychain, Secret Service/libsecret on Linux, Windows Credential Manager), falling back to a 0600 file under the config directory. Never log or echo tokens.
 
 ## Create artifacts
 
@@ -40,22 +40,20 @@ cairn --ttl 24h --title "incident notes" --tag handoff --tag lane:m notes.md
 |------|---------|
 | `--json` | Machine-readable output |
 | `--no-copy` | Don't copy link to clipboard |
-| `--redact` | Store detected secrets as `[REDACTED]` |
 | `--ttl` | Set artifact TTL (e.g. `"24h"`, `"7d"`) |
 | `--title` | Display title for the artifact |
 | `--tag` | Add routing tags (repeatable) |
 
 ## Server deployment
 
-`cairn` is a single monolithic binary; `cairn serve` provides the web app, API, SSE, and MCP
-server (formerly the `cairnd` binary). Configuration is environment-based:
+`cairn` is a single binary that talks to a Cairn server; the server is the standalone `cairnd`
+binary, which serves the web app, the /v1 REST/JSON API, the SSE streams, and the MCP server.
+Configuration is environment-based:
 
 ```bash
 CAIRN_DATABASE_URL="postgres://..." CAIRN_S3_ENDPOINT="..." CAIRN_S3_BUCKET="..." \
-cairn serve
+cairnd
 ```
-
-The container image ships a `cairnd` shim for backwards compatibility.
 
 ## Use CLI instead of MCP when:
 
