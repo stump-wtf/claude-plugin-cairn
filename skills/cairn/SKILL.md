@@ -1,6 +1,6 @@
 ---
 name: cairn
-description: Share and read artifacts on Cairn, the AI-native pastebin/gist/requestbin. Use whenever the user says "share this", "drop this in cairn", "give me a link to this", asks you to post a report/diff/log somewhere linkable, pastes a Cairn short URL or an mcp://cairn/<id> handle to read, wants a comment or reaction left on an artifact, wants an agent run captured as a shareable trajectory, or wants to hand work to another agent as a tagged handoff. Covers routing between artifact_create / bundle_create / run_create, reading artifacts and bundle members, the annotation layer (comments + reactions with typed anchors), tags and the handoff convention, what provenance can and cannot prove, TTL/expiry expectations, and the context-hygiene traps (truncated reads, echoing bodies you just created).
+description: Share and read artifacts on Cairn, the AI-native pastebin/gist/requestbin. Use whenever the user says "share this", "drop this in cairn", "give me a link to this", asks you to post a report/diff/log somewhere linkable, pastes a Cairn short URL or an mcp://cairn/<id> handle to read, wants a comment or reaction left on an artifact, wants an agent run captured as a shareable trajectory, or wants to hand work to another agent as a tagged handoff. Covers routing between artifact_create / bundle_create / run_create, reading artifacts and bundle members, the annotation layer (comments + reactions with typed anchors), tags and the handoff convention, what provenance can and cannot prove, TTL/expiry expectations, the Cairn CLI for when it beats the MCP tools, and the context-hygiene traps (truncated reads, echoing bodies you just created).
 ---
 
 # Cairn
@@ -26,6 +26,13 @@ conversation defeats the point and burns context.
 - When reading, a body over **1 MiB** comes back with `body_truncated: true`. Do not try to
   page the rest through MCP — the full content is always at the returned `url`. Hand a human
   that URL; for yourself, work with what came back or read a narrower bundle member.
+
+## Cairn CLI
+
+When the CLI beats the MCP tools — large payloads, scripts, subagents that don't inherit
+MCP tools — use the `cairn` single binary: `cat file | cairn` shares a body, `cairn add f1 f2`
+bundles files, `cairn login` / `cairn whoami` handle auth. The full flag table, create
+patterns, recipes, and `cairnd` server deployment live in `references/cli.md`.
 
 ## Routing: which create tool
 
@@ -143,24 +150,9 @@ and misroutes downstream. Pass the `mcp://cairn/<id>` handle to the receiving ag
 
 ## Tool reference
 
-| Tool | Key args | Scope |
-|---|---|---|
-| `artifact_read` | `id`, `path` (bundle member) | `artifacts:read` |
-| `artifact_create` | `body`, `title`, `share_type`, `media_type`, `model`, `tags` | `artifacts:write` |
-| `bundle_create` | `title`, `members[{name, body, media_type}]`, `model`, `tags` | `artifacts:write` |
-| `run_create` | `mode`, `title`, `prompt`, `model`, `token_count`, `started_at`, `spans[]` | `artifacts:write` |
-| `run_append_spans` | `id`, `spans[]` | `artifacts:write` |
-| `artifact_comment` | `id`, `anchor_type`, `anchor_ref`, `body`, `parent_id` | `annotations:write` |
-| `artifact_react` | `id`, `anchor_type`, `anchor_ref`, `emoji` | `annotations:write` |
-| `a2ui_action` | `name` (`open_member`), `context` | `artifacts:read` |
-| `a2ui_error` | `code`, `message`, `surfaceId` | none |
-
-Resources: `mcp://cairn/run/{id}` and `mcp://cairn/hook/{id}` (subscribable). Rendered views
-for A2UI-capable hosts — `cairn://artifact/{id}/a2ui`, `cairn://bundle/{id}/a2ui`,
-`cairn://bundle/{id}/{name}/a2ui`, `cairn://run/{id}/a2ui` (add `?w=N`), each also under
-`mcp://cairn/…`. **When a human asks to *see* an artifact, read the matching A2UI view**;
-`artifact_read` is for your own use. Subscribing to an `/a2ui` URI is an error — subscribe to
-the JSON resource instead.
+The per-tool argument and scope table, the resource URIs, and the A2UI views are in
+`references/tools.md`. **When a human asks to *see* an artifact, read the matching A2UI view**
+— `artifact_read` is for your own use.
 
 ## Quick recipes
 
